@@ -1,9 +1,60 @@
-{
-  "posts": [
-    { "id": 1, "title": "json-server", "author": "typicode" }
-  ],
-  "comments": [
-    { "id": 1, "body": "some comment", "postId": 1 }
-  ],
-  "profile": { "name": "typicode" }
+let votes = {
+    arron: 0,
+    ardie: 0,
+    siya: 0,
+    etzabeth: 0,
+};
+
+function voteForPlayer(playerName) {
+    votes[playerName]++;
+    
+    document.getElementById(`${playerName}-votes`).textContent = `${votes[playerName]} Votes`;
+    
+    fetch('https://your-backend-api.com/vote', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            player: playerName,
+            votes: votes[playerName]
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Vote recorded:', data);
+    })
+    .catch(error => {
+        console.error('Error recording vote:', error);
+        // Optionally revert vote if server fails
+        votes[playerName]--;
+        document.getElementById(`${playerName}-votes`).textContent = `${votes[playerName]} Votes`;
+    });
 }
+
+async function fetchInitialVotes() {
+    try {
+        const response = await fetch('https://your-backend-api.com/votes');
+        const data = await response.json();
+        
+        votes = data.votes;
+        
+        Object.keys(votes).forEach(player => {
+            document.getElementById(`${player}-votes`).textContent = `${votes[player]} Votes`;
+        });
+    } catch (error) {
+        console.error('Error fetching initial votes:', error);
+    }
+}
+
+// Add event listeners after page load
+window.onload = function() {
+    // Fetch initial votes
+    fetchInitialVotes();
+
+    // Add event listeners to buttons
+    document.getElementById('arron-button').addEventListener('click', () => voteForPlayer('arron'));
+    document.getElementById('ardie-button').addEventListener('click', () => voteForPlayer('ardie'));
+    document.getElementById('siya-button').addEventListener('click', () => voteForPlayer('siya'));
+    document.getElementById('etzabeth-button').addEventListener('click', () => voteForPlayer('etzabeth'));
+};
